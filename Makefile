@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-SRC = main.c
+SRC = main.c ft_ping.c parse.c
 OBJ = $(SRC:.c=.o)
 EXEC = ft_ping
 
