@@ -24,7 +24,7 @@ typedef struct ParsedArgs {
     float interval;
     int size;
     int timeout;
-    int timestamp;
+    int quiet;
 } ParsedArgs;
 
 // -- Parse --

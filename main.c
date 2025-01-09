@@ -40,12 +40,14 @@ int main(int ac, char **av)
     int packet_send = 0;
     int packet_recv = 0;
 
-    printf("PING %s (%s): %d data bytes\n", args.address, ip, args.size);
+    printf("PING %s (%s): %d bytes of data\n", args.address, ip, args.size);
+
+    int recv_packet_size = args.size + sizeof(struct icmp) - sizeof(struct ip);
 
     while (1) 
     {
         char *packet = build_packet(args);
-        char recv_packet[args.size + sizeof(struct ip) + sizeof(struct icmp)];
+        char recv_packet[recv_packet_size];
         int packet_size;
         struct timeval send, recv;
         int lost = 0;
@@ -57,24 +59,19 @@ int main(int ac, char **av)
             exit(1);
         }
         else packet_send++;
-        if ((packet_size = recvfrom(sock, &recv_packet, args.size + sizeof(struct ip) + sizeof(struct icmp), 0, NULL, NULL)) < 0) 
-        {
-            printf("Request timeout for icmp_seq %d\n", ((struct icmp*)(packet))->icmp_seq);
-            lost = 1;
-        }
+        if ((packet_size = recvfrom(sock, &recv_packet, recv_packet_size, 0, NULL, NULL)) < 0) lost = 1;
         else packet_recv++;
         gettimeofday(&recv, NULL);
-        if (!lost)
+        if (!lost && !args.quiet)
         {
             struct ip *ip_hdr = (struct ip *)recv_packet;
             struct icmp *icmp_hdr = (struct icmp *)(recv_packet + (ip_hdr->ip_hl << 2));
 
             (void)packet_recv;
             (void)packet_send;
-            printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%f ms\n", packet_size, ip, icmp_hdr->icmp_seq, ip_hdr->ip_ttl, get_ms(send, recv));
-            
-            sleep(1);
+            printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n", packet_size, ip, icmp_hdr->icmp_seq, ip_hdr->ip_ttl, get_ms(send, recv));
         }
+        if (!lost) usleep(args.interval);
         free(packet);
     }
 }

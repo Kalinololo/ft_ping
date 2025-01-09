@@ -13,7 +13,7 @@ ParsedArgs parse_args(int ac, char **av)
     args.size = PACKET_SIZE;
     args.timeout = 1;
     args.ttl = TTL;
-    args.timestamp = 0;
+    args.quiet = 0;
     int i = 1;
     while (i < ac)
     {
@@ -27,10 +27,10 @@ ParsedArgs parse_args(int ac, char **av)
             args.size = atoi(av[++i]);
         else if (!strcmp(av[i], "-W")) // Wait for reply
             args.timeout = atoi(av[++i]);
-        else if (!strcmp(av[i], "-t")) // Time to live
-            args.ttl = atoi(av[++i]);
-        else if (!strcmp(av[i], "-D")) // Timestamp
-            args.timestamp = 1;
+        else if (!strncmp(av[i], "--ttl=", 6)) // Time to live
+            args.ttl = atoi(av[i]);
+        else if (!strcmp(av[i], "-q")) // Quiet
+            args.quiet = 1;
         else if (av[i][0] == '-')
         {
             args.usage = 1;
