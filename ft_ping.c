@@ -9,8 +9,10 @@ char *resolve_hostname(char *hostname)
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    if (getaddrinfo(hostname, NULL, &hints, &result) != 0) {
-        exit(1);
+    if (getaddrinfo(hostname, NULL, &hints, &result) != 0) 
+    {
+        free(ip);
+        return NULL;
     }
     elem = result;
     while (elem != NULL)
@@ -24,6 +26,7 @@ char *resolve_hostname(char *hostname)
         elem = elem->ai_next;
     }
     freeaddrinfo(result);
+    free(ip);
     return NULL;
 }
 
@@ -40,7 +43,7 @@ int init_socket(ParsedArgs args)
 		return -1;
 	}
 
-    timeout.tv_sec = args.timeout;
+    timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
     if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) == -1) {
@@ -79,9 +82,36 @@ char *build_packet(ParsedArgs args)
     icmp->icmp_id = getpid();
     icmp->icmp_cksum = 0;
 
-    for (int i = 0; i < args.size; i++) *(packet + sizeof(struct icmp) + i) = i;
+    for (unsigned int i = 0; i < args.size; i++) *(packet + sizeof(struct icmp) + i) = i;
 
     icmp->icmp_cksum = checksum(packet, args.size + sizeof(struct icmp));
 
     return packet;
+}
+
+void calculate_stats(Stats *stats)
+{
+    float min = 0, max = 0, avg = 0, dev = 0, sum = 0, sum_sq = 0;
+    int count = 0;
+    Stats *current = stats;
+
+    if (current == NULL) return;
+
+    min = max = current->value;
+
+    while (current != NULL) {
+        float value = current->value;
+        if (value < min) min = value;
+        if (value > max) max = value;
+        sum += value;
+        sum_sq += value * value;
+        count++;
+        current = current->next;
+    }
+
+    avg = sum / count;
+    dev = sqrt((sum_sq / count) - (avg * avg));
+
+    printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n", min, max, avg, dev);
+
 }
