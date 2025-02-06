@@ -7,7 +7,7 @@ EXEC = ft_ping
 all: $(EXEC)
 
 $(EXEC): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(EXEC)
+	$(CC) $(CFLAGS) $(OBJ) -o $(EXEC) -lm
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

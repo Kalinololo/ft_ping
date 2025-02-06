@@ -13,6 +13,7 @@
 #include <sys/time.h>
 #include <math.h>
 #include <errno.h>
+#include <signal.h>
 
 #define PACKET_SIZE 56
 #define TTL 120
